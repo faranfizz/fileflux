@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — FluxFiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c26; --border:#2a2a3a; --accent:#00e5a0; --accent2:#7c5cfc; --accent3:#ff5e7d; --text:#f0f0f8; --muted:#7a7a99; --radius:14px; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:20px 40px; border-bottom:1px solid var(--border); background:rgba(10,10,15,0.9); }
+  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:22px; text-decoration:none; color:var(--text); }
+  .logo span { color:var(--accent); }
+  .hero { text-align:center; padding:60px 20px 40px; }
+  h1 { font-family:'Syne',sans-serif; font-size:42px; font-weight:800; margin-bottom:12px; }
+  .sub { color:var(--muted); font-size:16px; }
+  .posts { max-width:900px; margin:0 auto; padding:40px 24px 80px; display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+  .post-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; transition:all 0.25s; cursor:pointer; text-decoration:none; display:block; }
+  .post-card:hover { border-color:var(--accent); transform:translateY(-3px); background:var(--surface2); }
+  .post-tag { display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:14px; }
+  .tag-pdf { background:rgba(255,94,125,0.15); color:var(--accent3); }
+  .tag-image { background:rgba(0,229,160,0.15); color:var(--accent); }
+  .tag-video { background:rgba(124,92,252,0.15); color:var(--accent2); }
+  .tag-tips { background:rgba(245,158,11,0.15); color:#f59e0b; }
+  .post-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; margin-bottom:10px; color:var(--text); }
+  .post-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:16px; }
+  .post-date { font-size:12px; color:var(--border); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="/">Flux<span>Files</span></a>
+</nav>
+<div class="hero">
+  <h1>FluxFiles Blog</h1>
+  <p class="sub">Tips, guides, and updates on file conversion</p>
+</div>
+<div class="posts">
+  <a class="post-card" href="#">
+    <span class="post-tag tag-pdf">PDF</span>
+    <div class="post-title">How to Compress a PDF Without Losing Quality</div>
+    <div class="post-desc">A step-by-step guide to reducing PDF file size for email, sharing, and storage.</div>
+    <div class="post-date">March 2026</div>
+  </a>
+  <a class="post-card" href="#">
+    <span class="post-tag tag-image">Image</span>
+    <div class="post-title">WEBP vs JPG vs PNG — Which Format Should You Use?</div>
+    <div class="post-desc">A complete comparison of the most popular image formats and when to use each one.</div>
+    <div class="post-date">March 2026</div>
+  </a>
+  <a class="post-card" href="#">
+    <span class="post-tag tag-video">Video</span>
+    <div class="post-title">How to Compress a Video for WhatsApp or Email</div>
+    <div class="post-desc">Learn how to shrink large video files without ruining the quality.</div>
+    <div class="post-date">February 2026</div>
+  </a>
+  <a class="post-card" href="#">
+    <span class="post-tag tag-tips">Tips</span>
+    <div class="post-title">5 File Conversion Mistakes You're Probably Making</div>
+    <div class="post-desc">Common pitfalls when converting files and how to avoid losing data or quality.</div>
+    <div class="post-date">February 2026</div>
+  </a>
+  <a class="post-card" href="#">
+    <span class="post-tag tag-pdf">PDF</span>
+    <div class="post-title">How to Convert Word to PDF on Any Device</div>
+    <div class="post-desc">The easiest ways to convert DOCX files to PDF on Windows, Mac, and mobile.</div>
+    <div class="post-date">January 2026</div>
+  </a>
+  <a class="post-card" href="#">
+    <span class="post-tag tag-image">Image</span>
+    <div class="post-title">How to Remove a Background from Any Image for Free</div>
+    <div class="post-desc">A quick guide to removing image backgrounds using AI-powered tools.</div>
+    <div class="post-date">January 2026</div>
+  </a>
+</div>
+</body>
+</html>

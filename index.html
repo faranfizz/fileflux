@@ -721,12 +721,12 @@
 <nav>
   <div class="logo">File<span>Flux</span></div>
   <ul class="nav-links">
-    <li><a href="#">PDF Tools</a></li>
-    <li><a href="#">Image Tools</a></li>
-    <li><a href="#">Video Tools</a></li>
-    <li><a href="#">All Tools</a></li>
+    <li><a href="#" onclick="filterCat('pdf',document.querySelector('.cat-tab[data-cat=pdf]'));document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'});return false;">PDF Tools</a></li>
+    <li><a href="#" onclick="filterCat('image',document.querySelector('.cat-tab[data-cat=image]'));document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'});return false;">Image Tools</a></li>
+    <li><a href="#" onclick="filterCat('video',document.querySelector('.cat-tab[data-cat=video]'));document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'});return false;">Video Tools</a></li>
+    <li><a href="#" onclick="filterCat('all',document.querySelector('.cat-tab[data-cat=all]'));document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'});return false;">All Tools</a></li>
   </ul>
-  <button class="nav-cta">Try Free</button>
+  <button class="nav-cta" onclick="document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'})">Try Free ↓</button>
 </nav>
 
 <!-- HERO -->
@@ -898,11 +898,11 @@
   <div class="footer-logo">File<span>Flux</span></div>
   <p>The fastest free file converter on the web.</p>
   <div class="footer-links">
-    <a href="#">Privacy Policy</a>
-    <a href="#">Terms of Use</a>
-    <a href="#">Contact</a>
-    <a href="#">Blog</a>
-    <a href="#">Sitemap</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/terms.html">Terms of Use</a>
+    <a href="/contact.html">Contact</a>
+    <a href="/blog.html">Blog</a>
+    <a href="#" onclick="document.querySelector('.tools-section').scrollIntoView({behavior:'smooth'});return false;">All Tools</a>
   </div>
   <p>© 2026 FileFlux. All rights reserved.</p>
 </footer>
@@ -1065,7 +1065,6 @@
     return (bytes/(1024*1024)).toFixed(1) + ' MB';
   }
 
-  const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZDgwYjFjYmZjZjQ5MjQ3OGEwMjIzNDIzZTQyZjE3MTQ1MTIxN2Q0ODNlZTI1NTQ0NjkwMzk1ZmNlODk4NWM3NzIzOTk5MjA0MjMyMWZiZTQiLCJpYXQiOjE3NzMwNzU3MzcuMDYyNzQ0LCJuYmYiOjE3NzMwNzU3MzcuMDYyNzQ1LCJleHAiOjQ5Mjg3NDkzMzcuMDU1NTkyLCJzdWIiOiI3NDYzMDE2MSIsInNjb3BlcyI6WyJ0YXNrLnJlYWQiLCJ0YXNrLndyaXRlIiwidXNlci5yZWFkIl19.EdGdfWzvJpahiW9ZXc1GDbRyFMsbgOdRAlqqaMf0wePH-BCt7jAiGW08nu8I7uIfUFZWU_v10DX4iZ3djE99s_ONy231BhtQdp1pRQVd9Ez0lUHwImlERNdMx-Forzc7yAg44yBeCseY1P6s2oI3teEWM_lTDKE3r9LgvQuIIuY_VdGyjSa0mC_fmToxaXETb2Bhyf8iJ2IennosXpNDBbDA6rUDnPOEo5577X04KRfQJVq4a3DAqJVjJgPoMc6kLOJsaV9NGpyT415YaWbTX1GRm7WSLFXWT0EHjB2BLnQv_moNwBfv0wEq6mWDl2wBxxV2T1Fj3bi2jWe6Q4ovRJ-2221w7HaVYQ0ImqxAIApyITp2D0D9jf_0tbDQxobQO8uIyP-K46xdZ0bBav_PqjS2iDhSAU152e1zkgGER_96CxyqZbf-ATQoDfv0x7p1lSrlCuoKqtwgB4fUBU7vgBKUDXi8sxbDlc8ATesh1J83D8PZr2Vh1duyLr1JfNkzTaEK1VY4_H3GMZ1TUZBGgBwk_USlGRwDOnq4UCnKeZHBeauHkRoxfKi6l1PyJmqAoaMvVxWXj3nmzMATh1QtJk-Y2IbpmGRGlgTIakYhlo-A8txMvruSjFXYz_KK_Rn9KuYrv8wQbc8PkJRWQGOO3WLa7SzMNCZoH9mY3gIWsIw';
   let downloadUrl = '';
 
   function setProgress(pct, label) {
@@ -1079,77 +1078,63 @@
     btn.disabled = true;
     btn.textContent = '⏳ Converting...';
     document.getElementById('progressWrap').classList.add('show');
-    setProgress(5, 'Uploading file...');
+    setProgress(5, 'Preparing conversion...');
 
     try {
       const file = selectedFiles[0];
       const outputFormat = selectedFormat.toLowerCase();
-      const inputFormat = file.name.split('.').pop().toLowerCase();
 
-      // Step 1 — Create Job
+      // Step 1 — Create job via our serverless function (key stays secret)
       setProgress(10, 'Creating conversion job...');
-      const jobRes = await fetch('https://api.cloudconvert.com/v2/jobs', {
+      const jobRes = await fetch('/api/convert', {
         method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + CLOUDCONVERT_API_KEY,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tasks: {
-            'upload-file': { operation: 'import/upload' },
-            'convert-file': {
-              operation: 'convert',
-              input: 'upload-file',
-              output_format: outputFormat
-            },
-            'export-file': {
-              operation: 'export/url',
-              input: 'convert-file'
-            }
-          }
+          action: 'create_job',
+          fileName: file.name,
+          outputFormat
         })
       });
-
       const job = await jobRes.json();
+      if (!job.data) throw new Error('Failed to create job. Please try again.');
       const uploadTask = job.data.tasks.find(t => t.name === 'upload-file');
 
-      // Step 2 — Upload File
+      // Step 2 — Upload file directly to CloudConvert (no key needed here)
       setProgress(30, 'Uploading ' + file.name + '...');
       const formData = new FormData();
       Object.entries(uploadTask.result.form.parameters).forEach(([k, v]) => formData.append(k, v));
       formData.append('file', file);
       await fetch(uploadTask.result.form.url, { method: 'POST', body: formData });
 
-      // Step 3 — Poll for completion
+      // Step 3 — Poll via serverless function
       setProgress(55, 'Converting your file...');
       const jobId = job.data.id;
       let exportTask = null;
       for (let i = 0; i < 30; i++) {
         await new Promise(r => setTimeout(r, 2000));
-        const pollRes = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`, {
-          headers: { 'Authorization': 'Bearer ' + CLOUDCONVERT_API_KEY }
+        const pollRes = await fetch('/api/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'poll_job', jobId })
         });
         const pollData = await pollRes.json();
         const tasks = pollData.data.tasks;
         const status = pollData.data.status;
-        const prog = Math.min(55 + i * 3, 90);
-        setProgress(prog, 'Converting... please wait');
+        setProgress(Math.min(55 + i * 3, 90), 'Converting... please wait');
         if (status === 'finished') {
           exportTask = tasks.find(t => t.name === 'export-file');
           break;
         }
-        if (status === 'error') throw new Error('Conversion failed on server.');
+        if (status === 'error') throw new Error('Conversion failed. Try a different format.');
       }
 
       if (!exportTask?.result?.files?.[0]?.url) throw new Error('Could not get download link.');
-
-      // Step 4 — Done!
       downloadUrl = exportTask.result.files[0].url;
       setProgress(100, 'Done!');
       setTimeout(() => showSuccess(), 400);
 
     } catch (err) {
-      document.getElementById('progressLabel').textContent = '❌ Error: ' + err.message;
+      document.getElementById('progressLabel').textContent = '❌ ' + err.message;
       document.getElementById('progressPct').textContent = '';
       btn.disabled = false;
       btn.textContent = '⚡ Try Again';
