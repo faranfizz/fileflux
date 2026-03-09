@@ -1065,29 +1065,95 @@
     return (bytes/(1024*1024)).toFixed(1) + ' MB';
   }
 
-  function startConvert() {
+  const CLOUDCONVERT_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZDgwYjFjYmZjZjQ5MjQ3OGEwMjIzNDIzZTQyZjE3MTQ1MTIxN2Q0ODNlZTI1NTQ0NjkwMzk1ZmNlODk4NWM3NzIzOTk5MjA0MjMyMWZiZTQiLCJpYXQiOjE3NzMwNzU3MzcuMDYyNzQ0LCJuYmYiOjE3NzMwNzU3MzcuMDYyNzQ1LCJleHAiOjQ5Mjg3NDkzMzcuMDU1NTkyLCJzdWIiOiI3NDYzMDE2MSIsInNjb3BlcyI6WyJ0YXNrLnJlYWQiLCJ0YXNrLndyaXRlIiwidXNlci5yZWFkIl19.EdGdfWzvJpahiW9ZXc1GDbRyFMsbgOdRAlqqaMf0wePH-BCt7jAiGW08nu8I7uIfUFZWU_v10DX4iZ3djE99s_ONy231BhtQdp1pRQVd9Ez0lUHwImlERNdMx-Forzc7yAg44yBeCseY1P6s2oI3teEWM_lTDKE3r9LgvQuIIuY_VdGyjSa0mC_fmToxaXETb2Bhyf8iJ2IennosXpNDBbDA6rUDnPOEo5577X04KRfQJVq4a3DAqJVjJgPoMc6kLOJsaV9NGpyT415YaWbTX1GRm7WSLFXWT0EHjB2BLnQv_moNwBfv0wEq6mWDl2wBxxV2T1Fj3bi2jWe6Q4ovRJ-2221w7HaVYQ0ImqxAIApyITp2D0D9jf_0tbDQxobQO8uIyP-K46xdZ0bBav_PqjS2iDhSAU152e1zkgGER_96CxyqZbf-ATQoDfv0x7p1lSrlCuoKqtwgB4fUBU7vgBKUDXi8sxbDlc8ATesh1J83D8PZr2Vh1duyLr1JfNkzTaEK1VY4_H3GMZ1TUZBGgBwk_USlGRwDOnq4UCnKeZHBeauHkRoxfKi6l1PyJmqAoaMvVxWXj3nmzMATh1QtJk-Y2IbpmGRGlgTIakYhlo-A8txMvruSjFXYz_KK_Rn9KuYrv8wQbc8PkJRWQGOO3WLa7SzMNCZoH9mY3gIWsIw';
+  let downloadUrl = '';
+
+  function setProgress(pct, label) {
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressLabel').textContent = label;
+  }
+
+  async function startConvert() {
     const btn = document.getElementById('convertBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Converting...';
-    const pw = document.getElementById('progressWrap');
-    pw.classList.add('show');
-    const fill = document.getElementById('progressFill');
-    const pct = document.getElementById('progressPct');
-    const lbl = document.getElementById('progressLabel');
-    let progress = 0;
-    lbl.textContent = 'Processing ' + selectedFiles[0].name + '...';
-    const interval = setInterval(() => {
-      progress += Math.random() * 18 + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        fill.style.width = '100%';
-        pct.textContent = '100%';
-        setTimeout(() => showSuccess(), 400);
+    document.getElementById('progressWrap').classList.add('show');
+    setProgress(5, 'Uploading file...');
+
+    try {
+      const file = selectedFiles[0];
+      const outputFormat = selectedFormat.toLowerCase();
+      const inputFormat = file.name.split('.').pop().toLowerCase();
+
+      // Step 1 — Create Job
+      setProgress(10, 'Creating conversion job...');
+      const jobRes = await fetch('https://api.cloudconvert.com/v2/jobs', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + CLOUDCONVERT_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tasks: {
+            'upload-file': { operation: 'import/upload' },
+            'convert-file': {
+              operation: 'convert',
+              input: 'upload-file',
+              output_format: outputFormat
+            },
+            'export-file': {
+              operation: 'export/url',
+              input: 'convert-file'
+            }
+          }
+        })
+      });
+
+      const job = await jobRes.json();
+      const uploadTask = job.data.tasks.find(t => t.name === 'upload-file');
+
+      // Step 2 — Upload File
+      setProgress(30, 'Uploading ' + file.name + '...');
+      const formData = new FormData();
+      Object.entries(uploadTask.result.form.parameters).forEach(([k, v]) => formData.append(k, v));
+      formData.append('file', file);
+      await fetch(uploadTask.result.form.url, { method: 'POST', body: formData });
+
+      // Step 3 — Poll for completion
+      setProgress(55, 'Converting your file...');
+      const jobId = job.data.id;
+      let exportTask = null;
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        const pollRes = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`, {
+          headers: { 'Authorization': 'Bearer ' + CLOUDCONVERT_API_KEY }
+        });
+        const pollData = await pollRes.json();
+        const tasks = pollData.data.tasks;
+        const status = pollData.data.status;
+        const prog = Math.min(55 + i * 3, 90);
+        setProgress(prog, 'Converting... please wait');
+        if (status === 'finished') {
+          exportTask = tasks.find(t => t.name === 'export-file');
+          break;
+        }
+        if (status === 'error') throw new Error('Conversion failed on server.');
       }
-      fill.style.width = progress + '%';
-      pct.textContent = Math.round(progress) + '%';
-    }, 180);
+
+      if (!exportTask?.result?.files?.[0]?.url) throw new Error('Could not get download link.');
+
+      // Step 4 — Done!
+      downloadUrl = exportTask.result.files[0].url;
+      setProgress(100, 'Done!');
+      setTimeout(() => showSuccess(), 400);
+
+    } catch (err) {
+      document.getElementById('progressLabel').textContent = '❌ Error: ' + err.message;
+      document.getElementById('progressPct').textContent = '';
+      btn.disabled = false;
+      btn.textContent = '⚡ Try Again';
+    }
   }
 
   function showSuccess() {
@@ -1099,12 +1165,13 @@
   }
 
   function simulateDownload() {
-    const name = (selectedFiles[0]?.name.replace(/\.[^.]+$/, '') || 'converted_file') + '.' + selectedFormat.toLowerCase();
-    const a = document.createElement('a');
-    const blob = new Blob(['FileFlux — demo converted file'], {type:'text/plain'});
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
+    if (downloadUrl) {
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = '';
+      a.target = '_blank';
+      a.click();
+    }
   }
 
   function resetModal() {
